@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="l-main">
     <form>
       インデックスの追加
       <input type="text" v-model="label">
@@ -11,42 +11,46 @@
       <input type="text" v-model="comment">
       <button v-on:click.prevent="todoAdd">Add</button>
     </form>
-    <div>
-      <span>インデックスの選択</span>
-      <label v-for="label in labels" v-bind:key="label.id">
-        <input type="checkbox" v-bind:value="label.text" v-model="checkLabels">{{ label.text }}
+    <div class="l-container">
+      <label class="p-checkbox" v-for="label in labels" v-bind:key="label.id">
+        <input type="checkbox" v-bind:value="label.text" v-model="checkLabels"><span>{{ label.text }}</span>
       </label>
     </div>
     <hr>
-    <div>
+    <div class="l-container">
       <label v-for="label in stateOptions" v-bind:key="label.value">
-        <input type="radio" v-model="stateFilter" v-bind:value="label.value">{{ label.label }}
+        <input type="radio" v-model="stateFilter" v-bind:value="label.value"><span>{{ label.label }}</span>
       </label>
     </div>
-    <div>
+    <div class="l-container">
+      <label class="p-searchType" v-for="label in searchOptions" v-bind:key="label.value">
+        <input type="radio" v-model="searchType" v-bind:value="label.value"><span>{{ label.label }}</span>
+      </label>
+    </div>
+    <div class="l-container">
       <label v-for="label in labels" v-bind:key="label.id">
-          <input type="checkbox" v-bind:value="label.text" v-model="searchLabels">{{ label.text }}
+          <input type="checkbox" v-bind:value="label.text" v-model="searchLabels"><span>{{ label.text }}</span>
       </label>
     </div>
-    <table>
+    <table class="p-todoTable">
       <thead>
         <tr>
-          <th>COMMENT</th>
-          <th>STATE</th>
-          <th>INDEX</th>
-          <th>-</th>
+          <th style="width:80px">状態</th>
+          <th>TODO</th>
+          <th style="width:250px">タグ</th>
+          <th style="width:80px">-</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for = "todo in computedTodos" v-bind:key= "todo.id" v-bind:class="{done:todo.state}">
-          <th>{{ todo.comment }}</th>
-          <th>
+          <td>
             <button v-on:click="changeState(todo)">{{ stateLabels[todo.state] }}</button>
-          </th>
-          <th><span v-for="label in todo.labels" v-bind:key="label">{{ label }}</span></th>
-          <th>
-            <button v-on:click="removeTodo(todo)" >Del</button>
-          </th>
+          </td>
+          <td class="u-textLeft">{{ todo.comment }}</td>
+          <td class="u-textLeft"><span class="p-tag" v-for="label in todo.labels" v-bind:key="label">{{ label }}</span></td>
+          <td>
+            <button class="p-delBtn" v-on:click="removeTodo(todo)" >削除</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -70,6 +74,11 @@
         labels:[],
         checkLabels:[],
         searchLabels:[],
+        searchType:'or',
+        searchOptions:[
+          {value:'or',type:"or",label:"ORで絞込み"},
+          {value:'and',type:"and",label:"ANDで絞込み"},
+        ]
       }
     },
 
@@ -159,7 +168,7 @@
         },{})
       },
 
-    // インデックスのフィルター
+    // インデックスのフィルター(Or検索)
     indexFilterOr:function(){
       // どのインデックスにもチェックが無かったら、全てを表示する。
       if( this.searchLabels.length === 0){
@@ -191,10 +200,12 @@
           for(let i in this.searchLabels){
             if(item.labels.includes(this.searchLabels[i]) === false){
               // 選択されたインデックスが含まれ無かったら、ループを抜ける
-              break
-            } else if(item.labels.includes(this.searchLabels[this.searchLabels.length - 1])){
+              break;
+            } else if(i === String(this.searchLabels.length - 1) ){
               // 選択されたインデックスの最後が含まれていたら、filterで返す
-              return item
+              if(item.labels.includes(this.searchLabels[i]) === true){
+                return item;
+              }
             }
           }
         })
@@ -203,7 +214,13 @@
 
     // 作業状態のフィルター機能
     computedTodos:function(){
-      return this.indexFilterOr.filter(function(item) {
+      let searchType;
+      if( this.searchType === 'or' ){
+        searchType = this.indexFilterOr;
+      } else if( this.searchType === 'and'){
+        searchType = this.indexFilterAnd;
+      }
+      return searchType.filter(function(item) {
           if( this.stateFilter < 0){
             return item
           } else if(this.stateFilter === item.state){
@@ -230,4 +247,78 @@
 </script>
 
 <style>
+  .l-container{
+    display: flex;
+    justify-content: center;
+  }
+  label{
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+  label > input[type="checkbox"],
+  label > input[type="radio"]{
+    position: absolute;
+    opacity: 0;
+    display: none;
+  }
+  label > input[type="checkbox"] + span,
+  label > input[type="radio"] + span{
+    background-color:#ff8c00;
+    opacity: 0.5;
+    color: #fff;
+    padding: 1px 10px;
+    display: block;
+    margin: 5px 5px;
+    border-radius: 15px;
+  }
+  label > input[type="checkbox"]:checked + span,
+  label > input[type="radio"]:checked + span{
+    opacity: 1;
+  }
+  
+  label > input[type="radio"] + span {
+    margin: 5px 0;
+    border-radius: 0;
+  }
+
+  .p-todoTable{
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px auto 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-bottom:2px solid #ff8c00;
+  }
+  .p-todoTable thead th{
+    color: #ff8c00;
+    border-bottom:2px solid #ff8c00;
+  }
+  .p-todoTable tbody td{
+    padding: 10px 0;
+    text-align: center;
+    border-bottom: 1px dotted #ff8c00;
+  }
+
+  .p-tag{
+    background-color: #ff8c00;
+    color: #fff;
+    margin: 0 5px;
+    padding: 1px 10px;
+    border-radius: 15px;
+    display: inline-block;
+  }
+
+  .u-textLeft{
+    text-align: left !important;
+  }
+
+  .p-delBtn{
+    border: none;
+    background-color: red;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
 </style>
