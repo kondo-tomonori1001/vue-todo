@@ -1,59 +1,66 @@
 <template>
   <div class="l-main">
-    <form>
-      インデックスの追加
-      <input type="text" v-model="label">
-      <button v-on:click.prevent="labelAdd">Add</button>
-    </form>
-    <hr>
-    <form>
-      Todoリストの追加
-      <input type="text" v-model="comment">
-      <button v-on:click.prevent="todoAdd">Add</button>
-    </form>
+    <div class="l-top">
+      <div class="l-addIndex">
+        <p>インデックスを追加する
+        </p>
+        <form>
+          <input type="text" v-model="label">
+          <button v-on:click.prevent="labelAdd">Add</button>
+        </form>
+      </div>
+      <div class="l-addTodo">
+        <p>Todoリストを追加する</p>
+        <form>
+          <input type="text" v-model="comment">
+          <button v-on:click.prevent="todoAdd">Add</button>
+        </form>
+      </div>
+    </div>
     <div class="l-container">
       <label class="p-checkbox" v-for="label in labels" v-bind:key="label.id">
         <input type="checkbox" v-bind:value="label.text" v-model="checkLabels"><span>{{ label.text }}</span>
       </label>
     </div>
-    <hr>
-    <div class="l-container">
-      <label v-for="label in stateOptions" v-bind:key="label.value">
-        <input type="radio" v-model="stateFilter" v-bind:value="label.value"><span>{{ label.label }}</span>
-      </label>
+    <div class="l-resultWrap">
+      <div class="l-container">
+        <label v-for="label in stateOptions" v-bind:key="label.value">
+          <input type="radio" v-model="stateFilter" v-bind:value="label.value"><span>{{ label.label }}</span>
+        </label>
+      </div>
+      <div class="l-container l-container--searchType">
+        <label class="p-searchType" v-for="label in searchOptions" v-bind:key="label.value">
+          <input type="radio" v-model="searchType" v-bind:value="label.value"><span>{{ label.label }}</span>
+        </label>
+      </div>
+      <div class="l-container">
+        <label v-for="label in labels" v-bind:key="label.id">
+            <input type="checkbox" v-bind:value="label.text" v-model="searchLabels"><span>{{ label.text }}</span>
+        </label>
+      </div>
+      <table class="p-todoTable">
+        <thead>
+          <tr>
+            <th style="width:80px">状態</th>
+            <th>TODO</th>
+            <th style="width:250px">タグ</th>
+            <th style="width:80px">-</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for = "todo in computedTodos" v-bind:key= "todo.id" v-bind:class="{done:todo.state}">
+            <td>
+              <button v-on:click="changeState(todo)">{{ stateLabels[todo.state] }}</button>
+            </td>
+            <td class="u-textLeft">{{ todo.comment }}</td>
+            <td class="u-textLeft"><span class="p-tag" v-for="label in todo.labels" v-bind:key="label">{{ label }}</span></td>
+            <td>
+              <button class="p-delBtn" v-on:click="removeTodo(todo)" >削除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="l-container">
-      <label class="p-searchType" v-for="label in searchOptions" v-bind:key="label.value">
-        <input type="radio" v-model="searchType" v-bind:value="label.value"><span>{{ label.label }}</span>
-      </label>
-    </div>
-    <div class="l-container">
-      <label v-for="label in labels" v-bind:key="label.id">
-          <input type="checkbox" v-bind:value="label.text" v-model="searchLabels"><span>{{ label.text }}</span>
-      </label>
-    </div>
-    <table class="p-todoTable">
-      <thead>
-        <tr>
-          <th style="width:80px">状態</th>
-          <th>TODO</th>
-          <th style="width:250px">タグ</th>
-          <th style="width:80px">-</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for = "todo in computedTodos" v-bind:key= "todo.id" v-bind:class="{done:todo.state}">
-          <td>
-            <button v-on:click="changeState(todo)">{{ stateLabels[todo.state] }}</button>
-          </td>
-          <td class="u-textLeft">{{ todo.comment }}</td>
-          <td class="u-textLeft"><span class="p-tag" v-for="label in todo.labels" v-bind:key="label">{{ label }}</span></td>
-          <td>
-            <button class="p-delBtn" v-on:click="removeTodo(todo)" >削除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 
@@ -247,9 +254,49 @@
 </script>
 
 <style>
+  body{
+    background-color:#99ffcc;
+    padding: 0;
+    margin: 0;
+  }
+  .l-top{
+    margin-top:30px ;
+  }
+  .l-top p{
+    text-align: center;
+    margin: 10px 0;
+  }
+  .l-top form{
+    text-align: center;
+    margin: 10px 0;
+  }
+  .l-top input{
+    border: none;
+    padding: 5px;
+  }
+  .l-top button{
+    border: none;
+    padding: 5px;
+    background-color: #006633;
+    color: #fff;
+    cursor: pointer;
+  }
+  .l-addTodo{
+    margin-top: 30px;
+  }
   .l-container{
     display: flex;
     justify-content: center;
+  }
+  .l-container--searchType{
+    margin-top: 20px;
+  }
+  .l-resultWrap{
+    background-color: #ffffff;
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 30px 20px;
+    border-radius: 20px;
   }
   label{
     position: relative;
@@ -264,7 +311,7 @@
   }
   label > input[type="checkbox"] + span,
   label > input[type="radio"] + span{
-    background-color:#ff8c00;
+    background-color:#009966;
     opacity: 0.5;
     color: #fff;
     padding: 1px 10px;
@@ -288,20 +335,20 @@
     margin: 30px auto 0;
     border-collapse: collapse;
     border-spacing: 0;
-    border-bottom:2px solid #ff8c00;
+    border-bottom:2px solid #009966;
   }
   .p-todoTable thead th{
-    color: #ff8c00;
-    border-bottom:2px solid #ff8c00;
+    color: #009966;
+    border-bottom:2px solid #009966;
   }
   .p-todoTable tbody td{
     padding: 10px 0;
     text-align: center;
-    border-bottom: 1px dotted #ff8c00;
+    border-bottom: 1px dotted #009966;
   }
 
   .p-tag{
-    background-color: #ff8c00;
+    background-color: #009966;
     color: #fff;
     margin: 0 5px;
     padding: 1px 10px;
